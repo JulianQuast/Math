@@ -13,9 +13,12 @@ import java.math.RoundingMode;
  * functions. ExtDecimal stands for "extended BigDecimal". A part of the
  * comments is copied from the class BigDecimal.
  *
+ * To control: mod = modulo() div = divide() shift = shiftDecimalExponent(),
+ * shiftBinaryExponent() round = setScale()
+ *
  * @author Julian C. Quast (c) 2013
  */
-public class ExtDecimal {
+public class ExtDecimal extends VectorSpaceElement {
 
     // Constants
     /**
@@ -29,10 +32,20 @@ public class ExtDecimal {
      */
     public static final ExtDecimal ONE = new ExtDecimal(BigDecimal.ONE);
     /**
+     * The value 2, with a scale of 0.
+     *
+     */
+    public static final ExtDecimal TWO = new ExtDecimal(2);
+    /**
      * The value 10, with a scale of 0.
      *
      */
     public static final ExtDecimal TEN = new ExtDecimal(BigDecimal.TEN);
+    /**
+     * The value 0.5, with a scale of 1.
+     *
+     */
+    public static final ExtDecimal HALF = new ExtDecimal(0.5);
     /**
      * The value of pi, with a scale of 200.
      *
@@ -94,7 +107,7 @@ public class ExtDecimal {
      * @param val
      */
     public ExtDecimal(BigDecimal val) {
-        content = val.plus();
+        content = val;
     }
 
     /**
@@ -388,7 +401,7 @@ public class ExtDecimal {
      * @return this {@code ExtDecimal} converted to a {@code BigDecimal}.
      */
     public BigDecimal toBigDecimal() {
-        return content.plus();
+        return content;
     }
 
     /**
@@ -396,10 +409,27 @@ public class ExtDecimal {
      * and whose scale is
      * {@code this.scale()}.
      *
+     * 2013-06-21: OK
+     * 
      * @return {@code abs(this)}
      */
     public ExtDecimal abs() {
         return new ExtDecimal(content.abs());
+    }
+
+    /**
+     * This function returns 1 if n is even and -1 if n is odd. This function is
+     * the alternating function (-1)^x and is used in many series
+     * representations.
+     *
+     * @return {@code (-1)^n}
+     */
+    public static ExtDecimal alternatingFunction(int n) {
+        if (n % 2 == 0) {
+            return ONE;
+        } else {
+            return ONE.negate();
+        }
     }
 
     /**
@@ -434,10 +464,17 @@ public class ExtDecimal {
      * Returns a {@code ExtDecimal} whose value is {@code (-this)}, and whose
      * scale is {@code this.scale()}.
      *
+     * 2013-06-21: OK
+     * 
      * @return {@code -this}.
      */
     public ExtDecimal negate() {
         return new ExtDecimal(content.negate());
+    }
+
+    @Override
+    public VectorSpaceElement add(VectorSpaceElement vse) {
+        return add(vse);
     }
 
     /**
@@ -489,6 +526,19 @@ public class ExtDecimal {
         return new ExtDecimal(content.add(augend.toBigDecimal(), mc));
     }
 
+    public ExtDecimal inc() {
+        return add(ONE);
+    }
+
+    public ExtDecimal dec() {
+        return add(new ExtDecimal(-1));
+    }
+
+    @Override
+    public VectorSpaceElement subtract(VectorSpaceElement vse) {
+        return subtract(vse);
+    }
+
     /**
      * Returns a {@code BigDecimal} whose value is {@code (this -
      * subtrahend)}, and whose scale is {@code max(this.scale(),
@@ -501,6 +551,11 @@ public class ExtDecimal {
         return new ExtDecimal(content.subtract(subtrahend.toBigDecimal()));
     }
 
+    @Override
+    public VectorSpaceElement multiply(VectorSpaceElement vse) {
+        return multiply(vse);
+    }
+
     /**
      * Returns a {@code ExtDecimal} whose value is <tt>(this &times;
      * multiplicand)</tt>, and whose scale is {@code (this.scale() +
@@ -511,6 +566,39 @@ public class ExtDecimal {
      */
     public ExtDecimal multiply(ExtDecimal multiplicand) {
         return new ExtDecimal(content.multiply(multiplicand.toBigDecimal()));
+    }
+
+    /**
+     * Returns a {@code ExtDecimal} whose value is <tt>(this &times;
+     * multiplicand)</tt>, with rounding according to the context settings.
+     *
+     * @param multiplicand value to be multiplied by this {@code ExtDecimal}.
+     * @param mc the context to use.
+     * @return {@code this * multiplicand}, rounded as necessary.
+     * @throws ArithmeticException if the result is inexact but the rounding
+     * mode is {@code UNNECESSARY}.
+     */
+    public ExtDecimal multiply(ExtDecimal multiplicand, MathContext mc) {
+        return new ExtDecimal(content.multiply(multiplicand.toBigDecimal(), mc));
+    }
+
+    /**
+     * Returns a {@code ExtDecimal} whose value is {@code (this *
+     * multiplicand)}, and whose scale is as specified. If rounding must be
+     * performed to generate a result with the specified scale, the specified
+     * rounding mode is applied.
+     *
+     * @param multiplicand value to be multiplied by this {@code ExtDecimal}.
+     * @param precision precision of the {@code ExtDecimal} product to be
+     * returned.
+     * @param roundingMode rounding mode to apply.
+     * @return {@code this * multiplicand}
+     * @throws ArithmeticException if {@code multiplicand} is zero,
+     *         {@code roundingMode==RoundingMode.UNNECESSARY} and the specified scale is
+     * insufficient to represent the result of the division exactly.
+     */
+    public ExtDecimal multiply(ExtDecimal multiplicand, int precision, RoundingMode roundingMode) {
+        return new ExtDecimal(content.multiply(multiplicand.toBigDecimal(), new MathContext(precision, roundingMode)));
     }
 
     /**
@@ -663,24 +751,369 @@ public class ExtDecimal {
     }
 
     /**
-     * Returns a {@code ExtDecimal} whose value is <tt>(this &times;
-     * multiplicand)</tt>, and whose scale is {@code (this.scale() +
-     * multiplicand.scale())}.
+     * Returns a {@code ExtDecimal} which is numerically equal to this one but
+     * with any trailing zeros removed from the representation. For example,
+     * stripping the trailing zeros from the {@code ExtDecimal} value {@code 600.0},
+     * which has
+     * [{@code BigInteger}, {@code scale}] components equals to [6000, 1],
+     * yields {@code 6E2} with [{@code BigInteger},
+     * {@code scale}] components equals to [6, -2]
      *
-     * @param multiplicand value to be multiplied by this {@code ExtDecimal}.
+     * @return a numerically equal {@code ExtDecimal} with any trailing zeros
+     * removed.
+     */
+    public ExtDecimal stripTrailingZeros() {
+        return new ExtDecimal(content.stripTrailingZeros());
+    }
+
+    /**
+     * Returns a {@code ExtDecimal} whose value is {@code (this % divisor)}.
+     *
+     * !!!!Very Bad performance!!!!
+     *
+     * <p>The remainder is given by
+     * {@code this.subtract(this.divideToIntegralValue(divisor).multiply(divisor))}.
+     * Note that this is not the modulo operation (the result can be negative).
+     *
+     * @param divisor value by which this {@code ExtDecimal} is to be divided.
+     * @return {@code this % divisor}.
+     * @throws ArithmeticException if {@code divisor==0}
+     */
+    public ExtDecimal remainder(ExtDecimal divisor) {
+        return new ExtDecimal(content.remainder(divisor.toBigDecimal()));
+    }
+
+    /**
+     * Returns a {@code ExtDecimal} whose value is {@code (this modulo divisor)}.
+     * Note that this is the modulo operation (the result can not be negative).
+     *
+     * @param divisor value by which this {@code ExtDecimal} is to be divided.
+     * @return {@code this modulo divisor}.
+     * @throws ArithmeticException if {@code divisor==0}
+     */
+    public ExtDecimal modulo(ExtDecimal divisor) {
+        ExtDecimal result = remainder(divisor);
+        if (result.isNegative()) {
+            result = result.add(divisor);
+        }
+        return result;
+    }
+
+    /**
+     * Returns if the number is zero
+     *
+     * @return (@code this < 0)
+     */
+    public boolean isZero() {
+        return compareTo(ZERO) == 0;
+    }
+
+    /**
+     * Returns if the number is positive
+     *
+     * @return (@code this < 0)
+     */
+    public boolean isPositive() {
+        return compareTo(ZERO) == 1;
+    }
+
+    /**
+     * Returns if the number is negative
+     *
+     * @return (@code this < 0)
+     */
+    public boolean isNegative() {
+        return compareTo(ZERO) == -1;
+    }
+
+    /**
+     * Returns if the number is even
+     *
+     * @return {@code this % 2 == 0}
+     */
+    public boolean isEven() {
+        return this.remainder(TWO).compareTo(ZERO) == 0;
+    }
+
+    /**
+     * Returns if the number is odd.
+     *
+     * @return {@code this % 2 == 1}
+     */
+    public boolean isOdd() {
+        return this.remainder(TWO).compareTo(ONE) == 0;
+    }
+
+    /**
+     * Returns the <i>scale</i> of this {@code ExtDecimal}. If zero or positive,
+     * the scale is the number of digits to the right of the decimal point. If
+     * negative, the unscaled value of the number is multiplied by ten to the
+     * power of the negation of the scale. For example, a scale of {@code -3}
+     * means the unscaled value is multiplied by 1000.
+     *
+     * @return the scale of this {@code ExtDecimal}.
+     */
+    public int scale() {
+        return content.scale();
+    }
+
+    /**
+     * Multiplies the value of this with 2^n
+     *
+     * 2013-06-21: OK
+     * 
+     * @param n
+     * @return {@code this * 2^n}
+     */
+    public ExtDecimal shiftBinaryExponent(int n) {
+        if (n > 0) {
+            return this.multiply(TWO.pow(n));
+        } else if (n == 0) {
+            return this.plus();
+        } else {
+            return this.divide(TWO.pow(-n));
+        }
+    }
+
+    /**
+     * Multiplies the value of this with 10^n
+     *
+     * @param n
+     * @return {@code this * 10^n}
+     * @deprecated Use {@code movePointLeft()}, {@code movePointRight()} or {@code movePoint()()}
+     * instead instead
+     */
+    public ExtDecimal shiftDecimalExponent(int n) {
+        if (n > 0) {
+            return this.multiply(TEN.pow(n));
+        } else if (n == 0) {
+            return this.plus();
+        } else {
+            return this.divide(TEN.pow(-n));
+        }
+    }
+
+    /**
+     * Returns a {@code ExtDecimal} which is equivalent to this one with the
+     * decimal point moved {@code n} places to the left. If
+     * {@code n} is non-negative, the call merely adds {@code n} to the scale.
+     * If {@code n} is negative, the call is equivalent to {@code movePointRight(-n)}.
+     * The {@code ExtDecimal} returned by this call has value <tt>(this &times;
+     * 10<sup>-n</sup>)</tt> and scale {@code max(this.scale()+n,
+     * 0)}.
+     *
+     * @param n number of places to move the decimal point to the left.
+     * @return a {@code ExtDecimal} which is equivalent to this one with the
+     * decimal point moved {@code n} places to the left.
+     * @throws ArithmeticException if scale overflows.
+     */
+    public ExtDecimal movePointLeft(int n) {
+        return new ExtDecimal(content.movePointLeft(n));
+    }
+
+    /**
+     * Returns a {@code ExtDecimal} which is equivalent to this one with the
+     * decimal point moved {@code n} places to the right. If {@code n} is
+     * non-negative, the call merely subtracts
+     * {@code n} from the scale. If {@code n} is negative, the call is
+     * equivalent to {@code movePointLeft(-n)}. The
+     * {@code ExtDecimal} returned by this call has value <tt>(this &times;
+     * 10<sup>n</sup>)</tt> and scale {@code max(this.scale()-n,
+     * 0)}.
+     *
+     * @param n number of places to move the decimal point to the right.
+     * @return a {@code ExtDecimal} which is equivalent to this one with the
+     * decimal point moved {@code n} places to the right.
+     * @throws ArithmeticException if scale overflows.
+     */
+    public ExtDecimal movePointRight(int n) {
+        return new ExtDecimal(content.movePointRight(n));
+    }
+
+    /**
+     * Moves the Point n places to the left. For any negative value n the comma
+     * is moved to the right.
+     *
+     * @param n
+     * @return {@code this * 10^n}
+     */
+    public ExtDecimal movePoint(int n) {
+        if (n > 0) {
+            return movePointLeft(n);
+        } else if (n == 0) {
+            return plus();
+        } else {
+            return movePointRight(-n);
+        }
+    }
+
+    /**
+     * This is the floor function for this.
+     *
+     * @return {@code floor(this)}
+     */
+    public ExtDecimal floor() {
+        return new ExtDecimal(new BigDecimal(content.toBigInteger()));
+    }
+
+    // Means in the correct order
+    /**
+     * Returns the maximum of this {@code ExtDecimal} and {@code val}.
+     *
+     * @param val value with which the maximum is to be computed.
+     * @return the {@code ExtDecimal} whose value is the greater of this
+     *         {@code ExtDecimal} and {@code val}. If they are equal, as defined by the {@link #compareTo(ExtDecimal) compareTo}
+     * method, {@code this} is returned.
+     */
+    public ExtDecimal max(ExtDecimal val) {
+        return new ExtDecimal(content.max(val.toBigDecimal()));
+    }
+
+    /**
+     * Calculates the quadratic mean of {@code this} and {@code val}
+     *
+     *
+     * @param val
+     * @return {@code sqrt(1/2(this² + val²)) }
+     */
+    public ExtDecimal quadraticMean(ExtDecimal val, int scale) {
+        return pow(2).arithmeticMean(val.pow(2)).sqrt(scale);
+    }
+
+    /**
+     * Calculates the arithmetic mean of {@code this} and {@code val}
+     *
+     * 2013-06-21: OK
+     *
+     * @param val
+     * @return {@code (this + val)/2}
+     */
+    public ExtDecimal arithmeticMean(ExtDecimal val) {
+        return add(val).multiply(new ExtDecimal(0.5));
+    }
+
+    /**
+     * Calculates the geometric mean of {@code this} and {@code val}
+     *
+     * 2013-06-21: OK (Bug in sqrt() detected and fixed) Tested 2013-06-21: OK,
+     * Reduction to only for numbers >= 0
+     *
+     * @param val
+     * @return {@code sqrt(this * val)}
+     */
+    public ExtDecimal geometricMean(ExtDecimal val, int scale) {
+        if (!isNegative() && !val.isNegative()) {
+            return multiply(val).sqrt(scale);
+        } else {
+            throw new ArithmeticException("Geometric mean of negative numbers");
+        }
+    }
+
+    /**
+     * Calculates the harmonic mean of {@code this} and {@code val}
+     *
+     * 2013-06-21: Zero test added
+     *
+     * @param val
+     * @return {@code 2/(1/this + 1/val)}
+     */
+    public ExtDecimal harmonicMean(ExtDecimal val, int scale) {
+        if (isPositive() && val.isPositive()) {
+            return ExtDecimal.TWO.divide(ExtDecimal.ONE.divide(this, scale).add(ExtDecimal.ONE.divide(val, scale)), scale);
+        } else {
+            throw new ArithmeticException("Harmonic Mean of negative numbers or zero");
+        }
+    }
+
+    /**
+     * Returns the minimum of this {@code ExtDecimal} and
+     * {@code val}.
+     *
+     * 2013-06-21: OK
+     * 
+     * @param val value with which the minimum is to be computed.
+     * @return the {@code ExtDecimal} whose value is the lesser of this {@code ExtDecimal}
+     * and {@code val}. If they are equal, as defined by the {@link #compareTo(ExtDecimal) compareTo}
+     * method, {@code this} is returned.
+     */
+    public ExtDecimal min(ExtDecimal val) {
+        return new ExtDecimal(content.min(val.toBigDecimal()));
+    }
+
+    // Analytic and inverse functions
+    /**
+     * Returns an {@code ExtDecimal} whose value is <tt>sqrt(this)</tt>, and
+     * whose scale is {@code scale}. If {@code this} is negative it throws an
+     * ArithmeticException.
+     *
+     * Tested 2013-06-21: Bug for sqrt(0) detected an fixed.
+     *
+     * !!! There are some Exceptions for too large numbers !!!
+     *
+     * @param scale scale of the {@code ExtDecimal} radix to be returned.
+     * @throws ArithmeticException
      * @return {@code sqrt(this)}
      */
     public ExtDecimal sqrt(int scale) {
-        double dblval = this.doubleValue();
-        double dblguess = Math.sqrt(dblval);
-        ExtDecimal factor = ExtDecimal.valueOf(1 / (2 * dblguess));
-        ExtDecimal guess = ExtDecimal.valueOf(dblguess);
-        ExtDecimal newguess = guess.add(ExtDecimal.ONE);
-        while (guess.compareTo(newguess) != 0 && !guess.equals(newguess)) {
-            newguess = guess.plus();
-            guess = guess.subtract(guess.pow(2).setScale(scale + 2, RoundingMode.HALF_UP).subtract(this).multiply(factor));
+        if (this.compareTo(ExtDecimal.ZERO) >= 0) {
+            double dblval = this.doubleValue();
+            double dblguess = Math.sqrt(dblval);
+            //ExtDecimal factor = ExtDecimal.valueOf(1 / (2 * dblguess));
+            ExtDecimal half = ExtDecimal.valueOf(0.5);
+            ExtDecimal guess = ExtDecimal.valueOf(dblguess);
+            if (guess.compareTo(ExtDecimal.ZERO) == 0) {
+                guess = new ExtDecimal(0.00001);
+            }
+            ExtDecimal newguess = guess.add(ExtDecimal.ONE);
+            while (guess.compareTo(newguess) != 0 && !guess.equals(newguess)) {
+                newguess = guess.plus();
+                // guess := guess - (guess^2 - this) * factor
+                // Newton's method
+                //guess = guess.subtract(guess.pow(2).setScale(scale + 2, RoundingMode.HALF_UP).subtract(this).multiply(factor).setScale(scale + 2, RoundingMode.HALF_UP));
+                // Heron's method
+                guess = guess.add(this.divide(guess, scale + 2, RoundingMode.DOWN)).multiply(half).setScale(scale + 2, RoundingMode.DOWN);
+                System.out.println("SQRTSTEP");
+            }
+            return guess.setScale(scale, RoundingMode.DOWN);
+        } else {
+            throw new ArithmeticException("Square root of a negative number in a real context");
         }
-        return guess.setScale(scale, RoundingMode.DOWN);
+    }
+
+//    public int decimalPlaces() {
+//        int upperlimit = 1;
+//        int lowerlimit = 0;
+//        while (compareTo(ExtDecimal.TEN.pow(upperlimit - 1)) >= 0) {
+//            upperlimit *= 2;
+//        }
+//        while (upperlimit != lowerlimit) {
+//            if (compareTo(ExtDecimal.TEN.)) {
+//            }
+//        }
+//    }
+    /**
+     * Returns an {@code ExtDecimal} whose value is <tt>log10(this)</tt>, and
+     * whose scale is {@code scale}. If {@code this} is negative or 0 it throws
+     * an ArithmeticException.
+     *
+     * @param scale scale of the {@code ExtDecimal} log10 to be returned.
+     * @throws ArithmeticException
+     * @return {@code ln(this)}
+     */
+    public ExtDecimal log10(int scale) {
+        if (compareTo(ZERO) < 0) {
+            throw new ArithmeticException("Logarithm of a negative number in a real context");
+        } else if (compareTo(ZERO) == 0) {
+            throw new ArithmeticException("Logarithm of 0");
+        } else if (compareTo(ONE) == 0) {
+            return ZERO;
+        } else if (compareTo(E) == 0) {
+            return ONE;
+        } else {
+            // Verfahren noch unbekannt
+            // Arithmetisch-geometrisches Mittel angestrebt.
+            throw new UnsupportedOperationException("Not yet implemented");
+        }
     }
 
     /**
@@ -695,12 +1128,12 @@ public class ExtDecimal {
         int counter = 0;
         while (counter < max_steps) {
             solution[counter] = d.intValue();
-            if (solution[counter] == 0 || d.compareTo(ExtDecimal.ZERO) == 0 || Math.abs(solution[counter]) > EXCEED_FOR_CONTINUED_FRACTION) {
+            if (solution[counter] == 0 || d.compareTo(ZERO) == 0 || Math.abs(solution[counter]) > EXCEED_FOR_CONTINUED_FRACTION) {
                 solution[counter] = 0;
                 break;
             }
             ExtDecimal difference = d.subtract(ExtDecimal.valueOf(solution[counter]));
-            if (difference.compareTo(ExtDecimal.ZERO) == 0) {
+            if (difference.compareTo(ZERO) == 0) {
                 break;
             }
             d = ExtDecimal.ONE.divide(difference, max_steps * 2, RoundingMode.HALF_UP);
