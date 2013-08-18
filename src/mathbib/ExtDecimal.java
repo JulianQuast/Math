@@ -410,7 +410,7 @@ public class ExtDecimal extends VectorSpaceElement {
      * {@code this.scale()}.
      *
      * 2013-06-21: OK
-     * 
+     *
      * @return {@code abs(this)}
      */
     public ExtDecimal abs() {
@@ -465,7 +465,7 @@ public class ExtDecimal extends VectorSpaceElement {
      * scale is {@code this.scale()}.
      *
      * 2013-06-21: OK
-     * 
+     *
      * @return {@code -this}.
      */
     public ExtDecimal negate() {
@@ -861,7 +861,7 @@ public class ExtDecimal extends VectorSpaceElement {
      * Multiplies the value of this with 2^n
      *
      * 2013-06-21: OK
-     * 
+     *
      * @param n
      * @return {@code this * 2^n}
      */
@@ -1030,7 +1030,7 @@ public class ExtDecimal extends VectorSpaceElement {
      * {@code val}.
      *
      * 2013-06-21: OK
-     * 
+     *
      * @param val value with which the minimum is to be computed.
      * @return the {@code ExtDecimal} whose value is the lesser of this {@code ExtDecimal}
      * and {@code val}. If they are equal, as defined by the {@link #compareTo(ExtDecimal) compareTo}
@@ -1098,7 +1098,7 @@ public class ExtDecimal extends VectorSpaceElement {
      *
      * @param scale scale of the {@code ExtDecimal} log10 to be returned.
      * @throws ArithmeticException
-     * @return {@code ln(this)}
+     * @return {@code log10(this)}
      */
     public ExtDecimal log10(int scale) {
         if (compareTo(ZERO) < 0) {
@@ -1113,6 +1113,40 @@ public class ExtDecimal extends VectorSpaceElement {
             // Verfahren noch unbekannt
             // Arithmetisch-geometrisches Mittel angestrebt.
             throw new UnsupportedOperationException("Not yet implemented");
+        }
+    }
+
+    /**
+     * Returns an {@code ExtDecimal} whose value is <tt>ln(this)</tt>, and whose
+     * scale is {@code scale}. If {@code this} is negative or 0 it throws an
+     * ArithmeticException.
+     *
+     * @param scale scale of the {@code ExtDecimal} ln to be returned.
+     * @throws ArithmeticException
+     * @return {@code ln(this)}
+     */
+    public ExtDecimal ln(int scale, RoundingMode rm) {
+        if (compareTo(ZERO) < 0) {
+            throw new ArithmeticException("Logarithm of a negative number in a real context");
+        } else if (compareTo(ZERO) == 0) {
+            throw new ArithmeticException("Logarithm of 0");
+        } else if (compareTo(ONE) == 0) {
+            return ZERO;
+        } else if (compareTo(E) == 0) {
+            return ONE;
+        } else {
+
+            ExtDecimal sum = ExtDecimal.ZERO;
+
+            int limit = scale;
+
+            for (int i = 0; i <= limit; i++) {
+                ExtDecimal augend = this.dec().divide(this.inc(), scale + 2, RoundingMode.HALF_DOWN).pow(2 * i + 1).divide(ExtDecimal.valueOf(2 * i + 1), scale + 2, RoundingMode.HALF_UP);
+                //System.out.println(augend);
+                sum = sum.add(augend);
+            }
+
+            return sum.multiply(ExtDecimal.TWO).setScale(scale, RoundingMode.DOWN);
         }
     }
 
