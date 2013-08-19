@@ -53,12 +53,12 @@ public class Mathbib {
 //        System.out.println(Arrays.equals(a,b));
         //System.out.println(SmallFunctions.li(1.4513692348));
 
-        ExtDecimal a = ExtDecimal.ZERO;
+        ExtDecimal a = ExtDecimal.ONE;
         ExtDecimal b = ExtDecimal.TWO;
         ExtDecimal c = ExtDecimal.E;
 
 //        System.out.println(a.ln(10, RoundingMode.UP));
-        System.out.println(b.ln(1000, RoundingMode.UP));
+        System.out.println(a.exp(10, RoundingMode.UP));
         //System.out.println(c.ln(10, RoundingMode.UP));
 
     }

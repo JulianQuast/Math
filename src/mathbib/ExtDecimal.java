@@ -1151,6 +1151,43 @@ public class ExtDecimal extends VectorSpaceElement {
     }
 
     /**
+     * Returns an {@code ExtDecimal} whose value is <tt>exp(this)</tt>, and
+     * whose scale is {@code scale}.
+     *
+     * @param scale scale of the {@code ExtDecimal} ln to be returned.
+     * @throws ArithmeticException
+     * @return {@code exp(this)}
+     */
+    public ExtDecimal exp(int scale, RoundingMode rm) {
+
+        ExtDecimal sum = ExtDecimal.ZERO;
+
+        int limit = 10;
+
+        for (int i = 0; i < limit; i++) {
+            ExtDecimal augend = this.pow(i).divide(ExtDecimal.valueOf(i).factorial(), scale, RoundingMode.HALF_DOWN);
+            sum = sum.add(augend);
+        }
+        
+        return sum;
+    }
+
+    /**
+     * Returns an {@code ExtDecimal} whose value is <tt>floor(this)!</tt>. If {@code this}
+     * is negative it returns 1.
+     *
+     * @throws ArithmeticException
+     * @return {@code this!}
+     */
+    private ExtDecimal factorial() {
+        if (compareTo(ONE) != 1) {
+            return ONE;
+        } else {
+            return multiply(dec().factorial());
+        }
+    }
+
+    /**
      * Returns the continued fraction of an ExtDecimal-number.
      *
      * @param d
