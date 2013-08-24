@@ -642,8 +642,63 @@ public class ExtDecimal extends VectorSpaceElement {
      * @return {@code this + augend}
      */
     public ExtDecimal add(ExtDecimal augend) {
-        // Not yet customized
-        return new ExtDecimal(content.add(augend.toBigDecimal()));
+        if (type == Type.NUMBER) {
+            if (augend.type == Type.NUMBER) {
+                return new ExtDecimal(content.add(augend.toBigDecimal()));
+            } else if (augend.type == Type.POSITIVEZERO) {
+                return augend;
+            } else if (augend.type == Type.NEGATIVEZERO) {
+                return augend;
+            } else if (augend.type == Type.INFINITY) {
+                return INFINITY;
+            } else if (augend.type == Type.NEGATIVEINFINITY) {
+                return NEGATIVEINFINITY;
+            } else {
+                throw new UnsupportedOperationException("Unknown type");
+            }
+        } else if (type == Type.POSITIVEZERO) {
+            if (augend.type == Type.NUMBER) {
+                return augend;
+            } else if (augend.type == Type.POSITIVEZERO) {
+                return POSITIVEZERO;
+            } else if (augend.type == Type.NEGATIVEZERO) {
+                return ZERO;
+            } else if (augend.type == Type.INFINITY) {
+                return INFINITY;
+            } else if (augend.type == Type.NEGATIVEINFINITY) {
+                return NEGATIVEINFINITY;
+            } else {
+                throw new UnsupportedOperationException("Unknown type");
+            }
+        } else if (type == Type.NEGATIVEZERO) {
+            if (augend.type == Type.NUMBER) {
+                return augend;
+            } else if (augend.type == Type.POSITIVEZERO) {
+                return ZERO;
+            } else if (augend.type == Type.NEGATIVEZERO) {
+                return NEGATIVEZERO;
+            } else if (augend.type == Type.INFINITY) {
+                return INFINITY;
+            } else if (augend.type == Type.NEGATIVEINFINITY) {
+                return NEGATIVEINFINITY;
+            } else {
+                throw new UnsupportedOperationException("Unknown type");
+            }
+        } else if (type == Type.INFINITY) {
+            if (augend.type == Type.NEGATIVEINFINITY) {
+                throw new UnsupportedOperationException("Unknown number");
+            } else {
+                return INFINITY;
+            }
+        } else if (type == Type.NEGATIVEINFINITY) {
+            if (augend.type == Type.INFINITY) {
+                throw new UnsupportedOperationException("Unknown number");
+            } else {
+                return INFINITY;
+            }
+        } else {
+            throw new UnsupportedOperationException("Unknown type");
+        }
     }
 
     /**
@@ -660,8 +715,63 @@ public class ExtDecimal extends VectorSpaceElement {
      * mode is {@code UNNECESSARY}.
      */
     public ExtDecimal add(ExtDecimal augend, MathContext mc) {
-        // Not yet customized
-        return new ExtDecimal(content.add(augend.toBigDecimal(), mc));
+        if (type == Type.NUMBER) {
+            if (augend.type == Type.NUMBER) {
+                return new ExtDecimal(content.add(augend.toBigDecimal(), mc));
+            } else if (augend.type == Type.POSITIVEZERO) {
+                return augend;
+            } else if (augend.type == Type.NEGATIVEZERO) {
+                return augend;
+            } else if (augend.type == Type.INFINITY) {
+                return INFINITY;
+            } else if (augend.type == Type.NEGATIVEINFINITY) {
+                return NEGATIVEINFINITY;
+            } else {
+                throw new UnsupportedOperationException("Unknown type");
+            }
+        } else if (type == Type.POSITIVEZERO) {
+            if (augend.type == Type.NUMBER) {
+                return augend;
+            } else if (augend.type == Type.POSITIVEZERO) {
+                return POSITIVEZERO;
+            } else if (augend.type == Type.NEGATIVEZERO) {
+                return ZERO;
+            } else if (augend.type == Type.INFINITY) {
+                return INFINITY;
+            } else if (augend.type == Type.NEGATIVEINFINITY) {
+                return NEGATIVEINFINITY;
+            } else {
+                throw new UnsupportedOperationException("Unknown type");
+            }
+        } else if (type == Type.NEGATIVEZERO) {
+            if (augend.type == Type.NUMBER) {
+                return augend;
+            } else if (augend.type == Type.POSITIVEZERO) {
+                return ZERO;
+            } else if (augend.type == Type.NEGATIVEZERO) {
+                return NEGATIVEZERO;
+            } else if (augend.type == Type.INFINITY) {
+                return INFINITY;
+            } else if (augend.type == Type.NEGATIVEINFINITY) {
+                return NEGATIVEINFINITY;
+            } else {
+                throw new UnsupportedOperationException("Unknown type");
+            }
+        } else if (type == Type.INFINITY) {
+            if (augend.type == Type.NEGATIVEINFINITY) {
+                throw new UnsupportedOperationException("Unknown number");
+            } else {
+                return INFINITY;
+            }
+        } else if (type == Type.NEGATIVEINFINITY) {
+            if (augend.type == Type.INFINITY) {
+                throw new UnsupportedOperationException("Unknown number");
+            } else {
+                return INFINITY;
+            }
+        } else {
+            throw new UnsupportedOperationException("Unknown type");
+        }
     }
 
     public ExtDecimal inc() {
@@ -983,8 +1093,13 @@ public class ExtDecimal extends VectorSpaceElement {
      * @return (@code this < 0)
      */
     public boolean isZero() {
-        // Not yet customized
-        return compareTo(ZERO) == 0;
+        if (type == Type.NUMBER) {
+            return compareTo(ZERO) == 0;
+        } else if (type == Type.POSITIVEZERO || type == Type.NEGATIVEZERO) {
+            return true;
+        } else {
+            return false;
+        }
     }
 
     /**
@@ -993,8 +1108,13 @@ public class ExtDecimal extends VectorSpaceElement {
      * @return (@code this < 0)
      */
     public boolean isPositive() {
-        // Not yet customized
-        return compareTo(ZERO) == 1;
+        if (type == Type.NUMBER) {
+            return compareTo(ZERO) == 1;
+        } else if (type == Type.POSITIVEZERO || type == Type.INFINITY) {
+            return true;
+        } else {
+            return false;
+        }
     }
 
     /**
@@ -1003,8 +1123,13 @@ public class ExtDecimal extends VectorSpaceElement {
      * @return (@code this < 0)
      */
     public boolean isNegative() {
-        // Not yet customized
-        return compareTo(ZERO) == -1;
+        if (type == Type.NUMBER) {
+            return compareTo(ZERO) == -1;
+        } else if (type == Type.NEGATIVEZERO || type == Type.NEGATIVEINFINITY) {
+            return true;
+        } else {
+            return false;
+        }
     }
 
     /**
@@ -1037,8 +1162,11 @@ public class ExtDecimal extends VectorSpaceElement {
      * @return the scale of this {@code ExtDecimal}.
      */
     public int scale() {
-        // Not yet customized
-        return content.scale();
+        if (type == Type.NUMBER) {
+            return content.scale();
+        } else {
+            return 0;
+        }
     }
 
     /**
@@ -1155,8 +1283,15 @@ public class ExtDecimal extends VectorSpaceElement {
      * method, {@code this} is returned.
      */
     public ExtDecimal max(ExtDecimal val) {
-        // Not yet customized
-        return new ExtDecimal(content.max(val.toBigDecimal()));
+        if (type == Type.NUMBER) {
+            return new ExtDecimal(content.max(val.toBigDecimal()));
+        } else {
+            if (compareTo(val) == -1) {
+                return val;
+            } else {
+                return this;
+            }
+        }
     }
 
     /**
@@ -1167,7 +1302,6 @@ public class ExtDecimal extends VectorSpaceElement {
      * @return {@code sqrt(1/2(this² + val²)) }
      */
     public ExtDecimal quadraticMean(ExtDecimal val, int scale) {
-        // Not yet customized
         return pow(2).arithmeticMean(val.pow(2)).sqrt(scale);
     }
 
@@ -1180,7 +1314,6 @@ public class ExtDecimal extends VectorSpaceElement {
      * @return {@code (this + val)/2}
      */
     public ExtDecimal arithmeticMean(ExtDecimal val) {
-        // Not yet customized
         return add(val).multiply(new ExtDecimal(0.5));
     }
 
@@ -1194,7 +1327,6 @@ public class ExtDecimal extends VectorSpaceElement {
      * @return {@code sqrt(this * val)}
      */
     public ExtDecimal geometricMean(ExtDecimal val, int scale) {
-        // Not yet customized
         if (!isNegative() && !val.isNegative()) {
             return multiply(val).sqrt(scale);
         } else {
@@ -1211,7 +1343,6 @@ public class ExtDecimal extends VectorSpaceElement {
      * @return {@code 2/(1/this + 1/val)}
      */
     public ExtDecimal harmonicMean(ExtDecimal val, int scale) {
-        // Not yet customized
         if (isPositive() && val.isPositive()) {
             return ExtDecimal.TWO.divide(ExtDecimal.ONE.divide(this, scale).add(ExtDecimal.ONE.divide(val, scale)), scale);
         } else {
@@ -1231,8 +1362,15 @@ public class ExtDecimal extends VectorSpaceElement {
      * method, {@code this} is returned.
      */
     public ExtDecimal min(ExtDecimal val) {
-        // Not yet customized
-        return new ExtDecimal(content.min(val.toBigDecimal()));
+        if (type == Type.NUMBER) {
+            return new ExtDecimal(content.min(val.toBigDecimal()));
+        } else {
+            if (compareTo(val) != -1) {
+                return val;
+            } else {
+                return this;
+            }
+        }
     }
 
     // Analytic and inverse functions
@@ -1250,29 +1388,36 @@ public class ExtDecimal extends VectorSpaceElement {
      * @return {@code sqrt(this)}
      */
     public ExtDecimal sqrt(int scale) {
-        // Not yet customized
-        if (this.compareTo(ExtDecimal.ZERO) >= 0) {
-            double dblval = this.doubleValue();
-            double dblguess = Math.sqrt(dblval);
-            //ExtDecimal factor = ExtDecimal.valueOf(1 / (2 * dblguess));
-            ExtDecimal half = ExtDecimal.valueOf(0.5);
-            ExtDecimal guess = ExtDecimal.valueOf(dblguess);
-            if (guess.compareTo(ExtDecimal.ZERO) == 0) {
-                guess = new ExtDecimal(0.00001);
+        if (type == Type.NUMBER) {
+            if (this.compareTo(ExtDecimal.ZERO) >= 0) {
+                double dblval = this.doubleValue();
+                double dblguess = Math.sqrt(dblval);
+                //ExtDecimal factor = ExtDecimal.valueOf(1 / (2 * dblguess));
+                ExtDecimal half = ExtDecimal.valueOf(0.5);
+                ExtDecimal guess = ExtDecimal.valueOf(dblguess);
+                if (guess.compareTo(ExtDecimal.ZERO) == 0) {
+                    guess = new ExtDecimal(0.00001);
+                }
+                ExtDecimal newguess = guess.add(ExtDecimal.ONE);
+                while (guess.compareTo(newguess) != 0 && !guess.equals(newguess)) {
+                    newguess = guess.plus();
+                    // guess := guess - (guess^2 - this) * factor
+                    // Newton's method
+                    //guess = guess.subtract(guess.pow(2).setScale(scale + 2, RoundingMode.HALF_UP).subtract(this).multiply(factor).setScale(scale + 2, RoundingMode.HALF_UP));
+                    // Heron's method
+                    guess = guess.add(this.divide(guess, scale + 2, RoundingMode.DOWN)).multiply(half).setScale(scale + 2, RoundingMode.DOWN);
+                    System.out.println("SQRTSTEP");
+                }
+                return guess.setScale(scale, RoundingMode.DOWN);
+            } else {
+                throw new ArithmeticException("sqrt of ".toString());
             }
-            ExtDecimal newguess = guess.add(ExtDecimal.ONE);
-            while (guess.compareTo(newguess) != 0 && !guess.equals(newguess)) {
-                newguess = guess.plus();
-                // guess := guess - (guess^2 - this) * factor
-                // Newton's method
-                //guess = guess.subtract(guess.pow(2).setScale(scale + 2, RoundingMode.HALF_UP).subtract(this).multiply(factor).setScale(scale + 2, RoundingMode.HALF_UP));
-                // Heron's method
-                guess = guess.add(this.divide(guess, scale + 2, RoundingMode.DOWN)).multiply(half).setScale(scale + 2, RoundingMode.DOWN);
-                System.out.println("SQRTSTEP");
-            }
-            return guess.setScale(scale, RoundingMode.DOWN);
+        } else if (type == Type.POSITIVEZERO) {
+            return POSITIVEZERO;
+        } else if (type == Type.INFINITY) {
+            return INFINITY;
         } else {
-            throw new ArithmeticException("Square root of a negative number in a real context");
+            throw new UnsupportedOperationException("sqrt of ".toString());
         }
     }
 
@@ -1323,28 +1468,31 @@ public class ExtDecimal extends VectorSpaceElement {
      * @return {@code ln(this)}
      */
     public ExtDecimal ln(int scale, RoundingMode rm) {
-        // Not yet customized
-        if (compareTo(ZERO) < 0) {
-            throw new ArithmeticException("Logarithm of a negative number in a real context");
-        } else if (compareTo(ZERO) == 0) {
-            throw new ArithmeticException("Logarithm of 0");
-        } else if (compareTo(ONE) == 0) {
-            return ZERO;
-        } else if (compareTo(E) == 0) {
-            return ONE;
-        } else {
-
-            ExtDecimal sum = ExtDecimal.ZERO;
-
-            int limit = scale;
-
-            for (int i = 0; i <= limit; i++) {
-                ExtDecimal augend = this.dec().divide(this.inc(), scale + 2, RoundingMode.HALF_DOWN).pow(2 * i + 1).divide(ExtDecimal.valueOf(2 * i + 1), scale + 2, RoundingMode.HALF_UP);
-                //System.out.println(augend);
-                sum = sum.add(augend);
+        if (type == Type.NUMBER) {
+            if (compareTo(ZERO) < 0) {
+                throw new ArithmeticException("Logarithm of a negative number in a real context");
+            } else if (compareTo(ZERO) == 0) {
+                throw new ArithmeticException("Logarithm of 0");
+            } else if (compareTo(ONE) == 0) {
+                return ZERO;
+            } else if (compareTo(E) == 0) {
+                return ONE;
+            } else {
+                ExtDecimal sum = ExtDecimal.ZERO;
+                int limit = scale;
+                for (int i = 0; i <= limit; i++) {
+                    ExtDecimal augend = this.dec().divide(this.inc(), scale + 2, RoundingMode.HALF_DOWN).pow(2 * i + 1).divide(ExtDecimal.valueOf(2 * i + 1), scale + 2, RoundingMode.HALF_UP);
+                    //System.out.println(augend);
+                    sum = sum.add(augend);
+                }
+                return sum.multiply(ExtDecimal.TWO).setScale(scale, RoundingMode.DOWN);
             }
-
-            return sum.multiply(ExtDecimal.TWO).setScale(scale, RoundingMode.DOWN);
+        } else if (type == Type.POSITIVEZERO) {
+            return NEGATIVEINFINITY;
+        } else if (type == Type.INFINITY) {
+            return INFINITY;
+        } else {
+            throw new UnsupportedOperationException("exp of ".toString());
         }
     }
 
@@ -1357,17 +1505,25 @@ public class ExtDecimal extends VectorSpaceElement {
      * @return {@code exp(this)}
      */
     public ExtDecimal exp(int scale, RoundingMode rm) {
-// Not yet customized
-        ExtDecimal sum = ExtDecimal.ZERO;
-
-        int limit = 10;
-
-        for (int i = 0; i < limit; i++) {
-            ExtDecimal augend = this.pow(i).divide(ExtDecimal.valueOf(i).factorial(), scale, RoundingMode.HALF_DOWN);
-            sum = sum.add(augend);
+        if (type == Type.NUMBER) {
+            ExtDecimal sum = ExtDecimal.ZERO;
+            int limit = 10;
+            for (int i = 0; i < limit; i++) {
+                ExtDecimal augend = this.pow(i).divide(ExtDecimal.valueOf(i).factorial(), scale, RoundingMode.HALF_DOWN);
+                sum = sum.add(augend);
+            }
+            return sum;
+        } else if (type == Type.POSITIVEZERO) {
+            return ONE;
+        } else if (type == Type.NEGATIVEZERO) {
+            return ONE;
+        } else if (type == Type.INFINITY) {
+            return INFINITY;
+        } else if (type == Type.NEGATIVEINFINITY) {
+            return POSITIVEZERO;
+        } else {
+            throw new UnsupportedOperationException("exp of ".toString());
         }
-
-        return sum;
     }
 
     /**
@@ -1378,11 +1534,20 @@ public class ExtDecimal extends VectorSpaceElement {
      * @return {@code this!}
      */
     private ExtDecimal factorial() {
-        // Not yet customized
-        if (compareTo(ONE) != 1) {
+        if (type == Type.NUMBER) {
+            if (compareTo(ONE) != 1) {
+                return ONE;
+            } else {
+                return multiply(dec().factorial());
+            }
+        } else if (type == Type.POSITIVEZERO) {
             return ONE;
+        } else if (type == Type.NEGATIVEZERO) {
+            return ONE;
+        } else if (type == Type.INFINITY) {
+            return INFINITY;
         } else {
-            return multiply(dec().factorial());
+            throw new UnsupportedOperationException("Factorial of ".toString());
         }
     }
 
@@ -1394,23 +1559,36 @@ public class ExtDecimal extends VectorSpaceElement {
      * @return [a_1, a_2, ...]
      */
     public static int[] continuedFraction(ExtDecimal d, int max_steps, int EXCEED_FOR_CONTINUED_FRACTION) {
-        // Not yet customized
-        int[] solution = new int[max_steps];
-        int counter = 0;
-        while (counter < max_steps) {
-            solution[counter] = d.intValue();
-            if (solution[counter] == 0 || d.compareTo(ZERO) == 0 || Math.abs(solution[counter]) > EXCEED_FOR_CONTINUED_FRACTION) {
-                solution[counter] = 0;
-                break;
+        if (d.type == Type.NUMBER) {
+            int[] solution = new int[max_steps];
+            int counter = 0;
+            while (counter < max_steps) {
+                solution[counter] = d.intValue();
+                if (solution[counter] == 0 || d.compareTo(ZERO) == 0 || Math.abs(solution[counter]) > EXCEED_FOR_CONTINUED_FRACTION) {
+                    solution[counter] = 0;
+                    break;
+                }
+                ExtDecimal difference = d.subtract(ExtDecimal.valueOf(solution[counter]));
+                if (difference.compareTo(ZERO) == 0) {
+                    break;
+                }
+                d = ExtDecimal.ONE.divide(difference, max_steps * 2, RoundingMode.HALF_UP);
+                counter++;
             }
-            ExtDecimal difference = d.subtract(ExtDecimal.valueOf(solution[counter]));
-            if (difference.compareTo(ZERO) == 0) {
-                break;
-            }
-            d = ExtDecimal.ONE.divide(difference, max_steps * 2, RoundingMode.HALF_UP);
-            counter++;
+            return solution;
+        } else if (d.type == Type.POSITIVEZERO) {
+            int[] zarray = {0};
+            return zarray;
+        } else if (d.type == Type.NEGATIVEZERO) {
+            int[] zarray = {0};
+            return zarray;
+        } else if (d.type == Type.INFINITY) {
+            return new int[0];
+        } else if (d.type == Type.NEGATIVEINFINITY) {
+            return new int[0];
+        } else {
+            return new int[0];
         }
-        return solution;
     }
 
     /**
